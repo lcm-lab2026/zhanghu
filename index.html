@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>樟湖謝茶博覽會</title>
+<meta name="description" content="樟湖社區第一屆謝茶博覽會：樟湖茶廠介紹、探索茶廠遊程與茶廠地圖。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="page">
+
+<nav class="nav">
+  <a class="logo" href="#" aria-label="回到首頁">
+    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M14 2 C22 8 24 17 14 26 C4 17 6 8 14 2 Z" fill="#171717"/><path d="M14 6 L14 23" stroke="#fff" stroke-width="1.2"/></svg>
+  </a>
+  <button class="burger" id="openMenu" aria-label="開啟選單"><span></span><span></span></button>
+  <a class="pill" href="#map">茶廠地圖</a>
+  <div class="spacer"></div>
+</nav>
+
+<div class="overlay ez" id="overlay"></div>
+<aside class="drawer ez" id="drawer" aria-label="選單">
+  <div class="drawer-head">
+    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path d="M14 2 C22 8 24 17 14 26 C4 17 6 8 14 2 Z" fill="#171717"/><path d="M14 6 L14 23" stroke="#fff" stroke-width="1.2"/></svg>
+    <button class="x" id="closeMenu" aria-label="關閉選單"><span class="a ez"></span><span class="b ez"></span></button>
+  </div>
+  <div class="menu-links" id="menuLinks"></div>
+  <div class="mcta ez">
+    <a class="pill pill-show" href="#map">茶廠地圖</a>
+    <p class="drawer-credit" id="drawerCredit"></p>
+  </div>
+</aside>
+
+<main id="home">
+  <section class="hero">
+    <p class="kicker" id="kicker"></p>
+    <h1 class="h1" id="title"></h1>
+    <p class="sub" id="subtitle"></p>
+  </section>
+
+  <section class="marquee">
+    <div class="mask top"><svg viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0H1440V50C1440 50 1200 100 720 100C240 100 0 50 0 50V0Z" fill="#fff"/></svg></div>
+    <div class="mask bottom"><svg viewBox="0 0 1440 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 100H1440V50C1440 50 1200 0 720 0C240 0 0 50 0 50V100Z" fill="#fff"/></svg></div>
+    <div class="track" id="track"></div>
+  </section>
+
+  <section class="intro">
+    <p id="intro"></p>
+    <div class="links">
+      <a class="ul" data-route href="#map" target="_blank" rel="noopener">看茶廠地圖</a>
+      <a class="ul" href="#tours">探索茶廠go!</a>
+      <a class="ul" href="#list">認識樟湖茶廠</a>
+    </div>
+  </section>
+
+  <section class="wrap" id="tours">
+    <div class="center">
+      <h2 class="h2" id="toursTitle">探索茶廠 GO!</h2>
+      <p class="lead" id="toursIntro"></p>
+    </div>
+    <div id="tourRows"></div>
+    <p class="note" id="toursNote"></p>
+  </section>
+
+  <section class="wrap" id="map">
+    <div class="mapscroll">
+      <div class="mapbox" id="mapbox">
+        <img src="images/map.png" alt="樟湖茶廠地圖：研究團隊調查過的茶廠與樟湖生態國中小的相對位置">
+      </div>
+    </div>
+    <p class="maphint">大圓點是五間茶廠，小圓點是團隊調查過的其他茶廠。點一下看資訊。　<a class="ul" data-route href="#map" target="_blank" rel="noopener">用 Google 地圖走一圈</a></p>
+    <div id="spotInfo" class="spotinfo" aria-live="polite"></div>
+    <h3 class="h3">調查過的地點</h3>
+    <div id="spotList"></div>
+  </section>
+
+  <section class="wrap" id="list"></section>
+</main>
+
+<main id="detail" hidden></main>
+
+<footer class="footer" id="footer"></footer>
+</div>
+
+<script src="data/site.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
