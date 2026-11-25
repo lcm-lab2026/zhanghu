@@ -9,18 +9,17 @@
 
   /* ---------- static text ---------- */
   var E = S.event;
-  $('kicker').textContent = E.community + '　' + E.edition;
+  $('kicker').textContent = E.kicker;
   $('title').innerHTML = E.title.map(esc).join('<br>');
-  $('subtitle').textContent = E.subtitle;
   $('intro').textContent = E.intro;
   $('toursTitle').textContent = S.toursTitle;
   $('toursIntro').textContent = S.toursIntro;
   $('toursNote').textContent = S.toursNote;
-  $('drawerCredit').textContent = E.community + '\n' + E.credit.replace('｜', '　');
+  $('drawerCredit').textContent = E.credit.replace('｜', '\n');
   $('footer').innerHTML = E.footer.concat([E.credit]).map(function (l) { return '<p>' + esc(l) + '</p>'; }).join('');
 
   /* ---------- menu ---------- */
-  var items = F.map(function (f, i) { return [f.name, link(i)]; }).concat([[S.toursTitle, '#tours'], ['樟湖茶廠地圖', '#map']]);
+  var items = F.map(function (f, i) { return [f.name, link(i)]; }).concat([[S.toursTitle, '#tours'], ['茶廠地圖', '#map'], [S.columnTitle, '#list']]);
   $('menuLinks').innerHTML = items.map(function (m, i) {
     return '<a class="mlink ez" data-d="' + (150 + i * 60) + '" href="' + m[1] + '">' + esc(m[0]) + '</a>';
   }).join('');
@@ -86,81 +85,55 @@
     return '<div class="row tour"><figure class="' + cls + '">' + ph + '</figure><span class="no">' + esc(r.no) + '</span><div class="t"><p class="name">' + esc(r.title) + '</p><p class="meta">' + esc(r.time) + '　' + esc(r.note) + '</p></div><div class="stops">' + stops + '</div></div>';
   }).join('');
 
-  /* ---------- map: every surveyed spot ---------- */
+  /* ---------- map: every tea factory we visited ---------- */
   // 地圖底圖的經緯度範圍（改底圖時一起改）
   var BOX = { w: 120.6255, e: 120.6605, n: 23.6215, s: 23.5955 };
-  var gmap = function (p) { return 'https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng; };
   var SP = S.spots || [];
+  var ll = function (p) { return p.lat + ',' + p.lng; };
   SP.forEach(function (p) {
     p.x = (p.lng - BOX.w) / (BOX.e - BOX.w) * 100;
     p.y = (BOX.n - p.lat) / (BOX.n - BOX.s) * 100;
   });
-  // 靠得太近、在地圖上會疊在一起的點合併成一組（例如謝義源集合點與佳龍製茶所、石橋路上的幾間茶廠）
-  var NEAR = 0.0012;
-  var groups = [];
-  SP.forEach(function (p, i) {
-    var g = groups.filter(function (g) { return Math.abs(g.p.lat - p.lat) < NEAR && Math.abs(g.p.lng - p.lng) < NEAR; })[0];
-    if (g) { if (p.factory >= 0 && g.p.factory < 0) { g.p = p; g.items.unshift(i); } else g.items.push(i); }
-    else groups.push({ p: p, items: [i] });
-  });
+  var COL = SP.filter(function (p) { return !p.venue; });
+  // 五間茶廠排前面
+  COL.sort(function (a, b) { return (a.factory < 0 ? 9 : a.factory) - (b.factory < 0 ? 9 : b.factory); });
+  COL.forEach(function (p, k) { p.id = 'tea-' + (k + 1); });
 
   // Google 地圖路線：依 route 編號串起來
   var R = SP.filter(function (p) { return p.route; }).sort(function (a, b) { return a.route - b.route; });
-  var ll = function (p) { return p.lat + ',' + p.lng; };
   var routeUrl = R.length > 1 ? 'https://www.google.com/maps/dir/?api=1&origin=' + ll(R[0]) + '&destination=' + ll(R[R.length - 1]) +
     (R.length > 2 ? '&waypoints=' + R.slice(1, -1).map(ll).join('%7C') : '') : '#map';
   document.querySelectorAll('[data-route]').forEach(function (a) { a.href = routeUrl; });
 
-  var mapbox = $('mapbox'), info = $('spotInfo');
-  var pins = [];
-  function card(i) {
-    var p = SP[i];
-    var rows = (p.rows || []).map(function (r) {
-      var v = r[0] === '電話' ? '<a class="ul" href="tel:' + r[1].replace(/[^0-9]/g, '') + '">' + esc(r[1]) + '</a>' : esc(r[1]);
-      return '<dt>' + esc(r[0]) + '</dt><dd>' + v + '</dd>';
+  var mapbox = $('mapbox');
+  var svg = '<svg class="leaders" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' + COL.map(function (p) {
+    var lx = p.lx == null ? p.x : p.lx, ly = p.ly == null ? p.y : p.ly;
+    return '<line x1="' + p.x.toFixed(2) + '" y1="' + p.y.toFixed(2) + '" x2="' + lx + '" y2="' + ly + '"/>';
+  }).join('') + '</svg>';
+  mapbox.insertAdjacentHTML('beforeend', svg + COL.map(function (p) {
+    var lx = p.lx == null ? p.x : p.lx, ly = p.ly == null ? p.y : p.ly;
+    return '<span class="mdot" style="left:' + p.x.toFixed(2) + '%;top:' + p.y.toFixed(2) + '%"></span>' +
+      '<a class="mlabel' + (p.factory >= 0 ? ' main' : '') + '" href="#' + p.id + '" style="left:' + lx + '%;top:' + ly + '%">' + esc(p.name) + '</a>';
+  }).join(''));
+
+  /* ---------- 認識樟湖茶廠 column ---------- */
+  var tel = function (v) { return '<a class="ul" href="tel:' + v.replace(/[^0-9]/g, '') + '">' + esc(v) + '</a>'; };
+  $('list').innerHTML =
+    '<div class="colhead"><h2 class="h2">' + esc(S.columnTitle) + '</h2><p class="lead">' + esc(S.columnIntro) + '</p></div>' +
+    COL.map(function (p) {
+      var rows = (p.rows || []).map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd>' + (r[0] === '電話' ? tel(r[1]) : esc(r[1])) + '</dd>'; }).join('');
+      return '<article class="tea' + (p.photo ? ' has-photo' : '') + '" id="' + p.id + '">' +
+        (p.photo ? '<figure class="tea-ph"><img src="' + IMG + esc(p.photo) + '" alt="' + esc(p.name) + '" loading="lazy"></figure>' : '') +
+        '<div class="tea-tx">' +
+          '<h3>' + esc(p.name) + '</h3>' +
+          (p.note ? '<p class="tea-note">' + esc(p.note) + '</p>' : '') +
+          (rows ? '<dl class="tea-info">' + rows + '</dl>' : '') +
+          '<p class="tea-links">' +
+            (p.factory >= 0 ? '<a class="ul" href="' + link(p.factory) + '">看茶廠介紹</a>' : '') +
+            '<a class="ul" href="https://www.google.com/maps/search/?api=1&query=' + ll(p) + '" target="_blank" rel="noopener">在 Google 地圖開啟</a>' +
+          '</p>' +
+        '</div></article>';
     }).join('');
-    return '<article class="spot" id="spot-' + i + '">' +
-      '<p class="st">' + esc(p.status || '') + '</p>' +
-      '<h3>' + esc(p.name) + '</h3>' +
-      (p.note ? '<p class="sn">' + esc(p.note) + '</p>' : '') +
-      (rows ? '<dl class="info">' + rows + '</dl>' : '') +
-      '<p class="sl"><a class="ul" href="' + gmap(p) + '" target="_blank" rel="noopener">在 Google 地圖開啟</a>' +
-      (p.factory >= 0 ? '<a class="ul" href="' + link(p.factory) + '">看茶廠介紹</a>' : '') + '</p></article>';
-  }
-  function show(g, scroll) {
-    pins.forEach(function (q) { q[0].classList.toggle('on', q[1] === g); });
-    info.innerHTML = g.items.map(card).join('');
-    if (scroll) info.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-  groups.forEach(function (g) {
-    var p = g.p, big = p.factory >= 0;
-    if (p.kind === 'venue') return; // 學校已經畫在底圖上
-    var b = document.createElement('button');
-    b.type = 'button';
-    b.className = big ? 'pin' : 'dot' + (p.kind === 'venue' ? ' venue' : '');
-    b.style.left = p.x + '%'; b.style.top = p.y + '%';
-    b.setAttribute('aria-label', g.items.map(function (i) { return SP[i].name; }).join('、'));
-    b.innerHTML = big ? '<span class="num">' + (p.factory + 1) + '</span><span class="lab">' + esc(p.name) + (g.items.length > 1 ? '<em> ＋' + (g.items.length - 1) + '</em>' : '') + '</span>'
-                      : '<span class="d"></span><span class="lab">' + esc(p.name) + '</span>';
-    b.onclick = function () { show(g, true); };
-    mapbox.appendChild(b); pins.push([b, g]);
-  });
-  show(groups.filter(function (g) { return g.p.factory >= 0; })[0], false);
-
-  // 調查過的地點清單
-  $('spotList').innerHTML = SP.map(function (p, i) {
-    var g = groups.filter(function (g) { return g.items.indexOf(i) >= 0; })[0];
-    return '<button type="button" class="srow" data-g="' + groups.indexOf(g) + '"><span class="nm">' + esc(p.name) + '</span><span class="ln">' + esc(p.status || '') + '</span><span class="go">看資訊</span></button>';
-  }).join('');
-  $('spotList').addEventListener('click', function (e) {
-    var b = e.target.closest('.srow'); if (!b) return;
-    show(groups[+b.dataset.g], true);
-  });
-
-  /* ---------- factory list ---------- */
-  $('list').innerHTML = F.map(function (f, i) {
-    return '<a class="frow" href="' + link(i) + '"><span class="n">' + pad(i) + '</span><span class="nm">' + esc(f.name) + '</span><span class="ln">' + esc(f.line) + '</span><span class="go">認識茶廠</span></a>';
-  }).join('');
 
   /* ---------- detail page ---------- */
   var img = function (file, cls, label) {
@@ -190,12 +163,12 @@
     if (i >= 0 && i < F.length) {
       $('home').hidden = true; $('detail').hidden = false;
       $('detail').innerHTML = detail(i);
-      document.title = F[i].name + '｜樟湖謝茶博覽會';
+      document.title = F[i].name + '｜樟湖社區小型茶博覽會';
       window.scrollTo(0, 0);
     } else {
       var wasDetail = !$('detail').hidden;
       $('home').hidden = false; $('detail').hidden = true;
-      document.title = '樟湖謝茶博覽會';
+      document.title = '樟湖社區小型茶博覽會';
       var target = location.hash && document.querySelector(location.hash);
       if (target) target.scrollIntoView(); else if (wasDetail) window.scrollTo(0, 0);
     }
