@@ -78,15 +78,16 @@ window.SITE = {
   //   lx / ly：地圖上名稱標籤的位置（百分比），會用細線連到真正的位置
   //   factory：五間茶廠的編號（0–4），連到茶廠介紹頁；其他填 -1
   //   photo：專欄照片，放在 images/factories/，沒有就留 ""
-  //   route：有填數字的點，會依序串成「看茶廠地圖」的 Google 地圖路線
-  //   venue：true 的地點只用在路線，不出現在地圖標籤和專欄
+  //   venue：true 的地點不出現在地圖標籤和專欄
   mapLink: "看茶廠地圖",
+  // 「看茶廠地圖」連到的 Google 地圖清單（在 Google 地圖的「已儲存」清單按分享，複製連結貼在這裡）
+  mapListUrl: "https://www.google.com/maps/@/data=!3m1!4b1!4m3!11m2!2sXQLD-jRH0VN1Y5y_3MWPIA!3e3?entry=tts",
   columnTitle: "認識樟湖茶廠",
   columnIntro: "研究團隊走訪樟湖村的茶廠，每一間的茶園、做法和賣茶的方式都不一樣。",
   spots: [
     { name: "樟湖生態國中小", lat: 23.6041623, lng: 120.6321106, factory: -1, venue: true, route: 1 },
     { name: "張師傅紅茶園", lat: 23.6165124, lng: 120.6443326, lx: 56, ly: 19.2, factory: 0, route: 6, photo: "zhang-hero.jpg",
-      note: "不用農藥與除草劑的生態茶園，秋天黃頭鷺過境約五十天。有茶席、茶點與手作體驗。",
+      note: "不用農藥與除草劑的生態茶園。在秋天會有黃頭鷺過境，可觀賞候鳥遷移美景，期間一年中約有五十天能在此欣賞。茶園也有茶席、茶點與手作體驗須提前預約。",
       rows: [["地址", "雲林縣古坑鄉樟湖21-2號"], ["電話", "05-533-4875"], ["銷售", "實體店面、Facebook"], ["茶種", "紅玉紅茶"]] },
     { name: "古松茶廠", lat: 23.61118924898105, lng: 120.63738278663637, lx: 36.5, ly: 39.7, factory: 1, route: 4, photo: "",
       note: "",

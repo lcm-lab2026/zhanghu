@@ -103,6 +103,7 @@
   var R = SP.filter(function (p) { return p.route; }).sort(function (a, b) { return a.route - b.route; });
   var routeUrl = R.length > 1 ? 'https://www.google.com/maps/dir/?api=1&origin=' + ll(R[0]) + '&destination=' + ll(R[R.length - 1]) +
     (R.length > 2 ? '&waypoints=' + R.slice(1, -1).map(ll).join('%7C') : '') : '#map';
+  if (S.mapListUrl) routeUrl = S.mapListUrl; // 用 Google 地圖的儲存清單，不給路線
   document.querySelectorAll('[data-route]').forEach(function (a) { a.href = routeUrl; });
 
   var mapbox = $('mapbox');
