@@ -1,6 +1,32 @@
 (function () {
   var S = window.SITE;
-  var IMG = 'images/factories/';
+  // 照片：images/茶廠照片/<茶廠名稱>/<檔名>.jpg，找不到就顯示「照片拍攝中」
+  // 每一類可以放一張（招牌茶.jpg）或多張（招牌茶1.jpg、招牌茶2.jpg…最多 8 張）
+  var FILE = { hero: '主圖', portrait: '人物', process: '製茶', signature: '招牌茶' };
+  var photo = function (name, base) { return 'images/' + encodeURIComponent('茶廠照片') + '/' + encodeURIComponent(name) + '/' + encodeURIComponent(FILE[base] || base) + '.jpg'; };
+  var MAXN = 8;
+  // 主圖找不到時依序改用：主圖1 → 招牌茶1 → 其他1 → 人物1
+  var MAINS = ['主圖', '主圖1', '招牌茶1', '其他1', '人物1', '招牌茶', '人物'];
+  window.zhNext = function (im, done) {
+    var list = (im.getAttribute('data-alt') || '').split('|').filter(Boolean);
+    if (!list.length) { done(im); return; }
+    im.setAttribute('data-alt', list.slice(1).join('|')); im.src = list[0];
+  };
+  var mainImg = function (name, attrs, onfail) {
+    var all = MAINS.map(function (b) { return photo(name, b); });
+    return '<img src="' + all[0] + '" data-alt="' + all.slice(1).join('|') + '" ' + attrs + ' onerror="zhNext(this,' + onfail + ')">';
+  };
+  // 一排照片：依序試 類別.jpg、類別1.jpg…類別8.jpg，找不到的自動拿掉
+  window.zhStrip = function (s) { if (s && !s.querySelector('img')) s.classList.add('empty'); };
+  var strip = function (name, cats, cls) {
+    var imgs = '';
+    cats.forEach(function (c) {
+      ['', 1, 2, 3, 4, 5, 6, 7, 8].slice(0, MAXN + 1).forEach(function (k) {
+        imgs += '<img src="' + photo(name, c + k) + '" alt="' + esc(name) + '" loading="lazy" onerror="var s=this.parentNode;this.remove();zhStrip(s)">';
+      });
+    });
+    return '<div class="strip ' + (cls || '') + '"><p class="ph">照片拍攝中</p>' + imgs + '</div>';
+  };
   var F = S.factories;
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
@@ -12,14 +38,11 @@
   $('kicker').textContent = E.kicker;
   $('title').innerHTML = E.title.map(esc).join('<br>');
   $('intro').textContent = E.intro;
-  $('toursTitle').textContent = S.toursTitle;
-  $('toursIntro').textContent = S.toursIntro;
-  $('toursNote').textContent = S.toursNote;
   $('drawerCredit').textContent = E.credit.replace('｜', '\n');
   $('footer').innerHTML = E.footer.concat([E.credit]).map(function (l) { return '<p>' + esc(l) + '</p>'; }).join('');
 
   /* ---------- menu ---------- */
-  var items = F.map(function (f, i) { return [f.name, link(i)]; }).concat([[S.toursTitle, '#tours'], ['茶廠地圖', '#map'], [S.columnTitle, '#list']]);
+  var items = F.map(function (f, i) { return [f.name, link(i)]; }).concat([['茶廠地圖', '#map'], [S.columnTitle, '#list']]);
   $('menuLinks').innerHTML = items.map(function (m, i) {
     return '<a class="mlink ez" data-d="' + (150 + i * 60) + '" href="' + m[1] + '">' + esc(m[0]) + '</a>';
   }).join('');
@@ -36,10 +59,9 @@
 
   /* ---------- marquee ---------- */
   var slides = S.marquee.map(function (m) {
-    var f = F[m[0]], file = m[1] ? f.photos[m[1]] : '';
-    return file
-      ? '<div class="slide" data-i="' + m[0] + '"><img src="' + IMG + esc(file) + '" alt="' + esc(f.name) + '" draggable="false" loading="lazy"></div>'
-      : '<div class="slide" data-i="' + m[0] + '"><div class="ph"><b>' + esc(f.name) + '</b><small>照片拍攝中</small></div></div>';
+    var f = F[m[0]];
+    return '<div class="slide" data-i="' + m[0] + '"><div class="ph"><b>' + esc(f.name) + '</b><small>照片拍攝中</small></div>' +
+      '<img src="' + photo(f.name, m[1] || '主圖') + '" alt="' + esc(f.name) + '" draggable="false" onerror="this.remove()"></div>';
   }).join('');
   var track = $('track');
   track.innerHTML = slides + slides;
@@ -73,17 +95,6 @@
   }
   track.addEventListener('pointerup', up);
   track.addEventListener('pointercancel', up);
-
-  /* ---------- tours ---------- */
-  $('tourRows').innerHTML = S.tours.map(function (r) {
-    var stops = r.stops.map(function (s, j) {
-      var a = j ? '<span class="arrow" aria-hidden="true">→</span>' : '';
-      return a + (s[1] >= 0 ? '<a class="ul" style="font-weight:500" href="' + link(s[1]) + '">' + esc(s[0]) + '</a>' : '<span>' + esc(s[0]) + '</span>');
-    }).join('');
-    var ph = r.photo ? '<img src="' + IMG + esc(r.photo) + '" alt="' + esc(r.title) + '" loading="lazy">' : '<span class="ph-empty">照片拍攝中</span>';
-    var cls = r.photo ? 'tph' : 'tph empty';
-    return '<div class="row tour"><figure class="' + cls + '">' + ph + '</figure><span class="no">' + esc(r.no) + '</span><div class="t"><p class="name">' + esc(r.title) + '</p><p class="meta">' + esc(r.time) + '　' + esc(r.note) + '</p></div><div class="stops">' + stops + '</div></div>';
-  }).join('');
 
   /* ---------- map: every tea factory we visited ---------- */
   // 地圖底圖的經緯度範圍（改底圖時一起改）
@@ -123,8 +134,8 @@
     '<div class="colhead"><h2 class="h2">' + esc(S.columnTitle) + '</h2><p class="lead">' + esc(S.columnIntro) + '</p></div>' +
     COL.map(function (p) {
       var rows = (p.rows || []).map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd>' + (r[0] === '電話' ? tel(r[1]) : esc(r[1])) + '</dd>'; }).join('');
-      return '<article class="tea' + (p.photo ? ' has-photo' : '') + '" id="' + p.id + '">' +
-        (p.photo ? '<figure class="tea-ph"><img src="' + IMG + esc(p.photo) + '" alt="' + esc(p.name) + '" loading="lazy"></figure>' : '') +
+      return '<article class="tea has-photo" id="' + p.id + '">' +
+        '<figure class="tea-ph">' + mainImg(p.name, 'alt="' + esc(p.name) + '" loading="lazy"', 'function(i){i.closest(\'.tea\').classList.remove(\'has-photo\');i.parentNode.remove()}') + '</figure>' +
         '<div class="tea-tx">' +
           '<h3>' + esc(p.name) + '</h3>' +
           (p.note ? '<p class="tea-note">' + esc(p.note) + '</p>' : '') +
@@ -138,24 +149,27 @@
 
   /* ---------- detail page ---------- */
   var img = function (file, cls, label) {
-    var st = file ? ' style="background-image:url(\'' + IMG + encodeURI(file) + '\')"' : '';
-    return '<div class="img ' + cls + '"' + st + '>' + (file ? '' : '<p class="ph">' + (label || '照片拍攝中') + '</p>') + '</div>';
+    return '<div class="img ' + cls + '"><p class="ph">' + (label || '照片拍攝中') + '</p>' +
+      (file ? '<img class="fill" src="' + file + '" alt="" onerror="this.remove()">' : '') + '</div>';
   };
   function detail(i) {
-    var f = F[i], p = f.photos, n = F.length, pv = (i + n - 1) % n, nx = (i + 1) % n;
+    var f = F[i], n = F.length, pv = (i + n - 1) % n, nx = (i + 1) % n;
     var buy = f.buy.url ? '<a class="pill pill-show" href="' + esc(f.buy.url) + '" target="_blank" rel="noopener">' + esc(f.buy.label) + '</a>'
                         : '<span class="pill pill-show" style="opacity:.4">' + esc(f.buy.label) + '（連結待補）</span>';
     return '<div class="dwrap">' +
       '<a class="ul" href="#">← 回首頁</a>' +
-      img(p.hero, 'dhero') +
+      '<div class="img dhero"><p class="ph">照片拍攝中</p>' + mainImg(f.name, 'class="fill" alt=""', 'function(i){i.remove()}') + '</div>' +
       '<div class="dhead"><p class="idx">' + pad(i) + ' / ' + pad(n - 1) + '</p><h2>' + esc(f.name) + '</h2><p class="ln">' + esc(f.line) + '</p><p class="story">' + esc(f.story) + '</p></div>' +
-      '<div class="pair">' + img(p.portrait, '') + img(p.process, '') + '</div>' +
-      '<div class="sig">' + img(p.signature, '') + '<div class="txt"><p class="lbl">招牌茶</p><h3>' + esc(f.signature.title) + '</h3><p class="desc">' + esc(f.signature.desc) + '</p>' +
+      strip(f.name, ['人物', '製茶'], 'need') +
+      '<div class="sig"><div class="txt"><p class="lbl">招牌茶</p><h3>' + esc(f.signature.title) + '</h3><p class="desc">' + esc(f.signature.desc) + '</p>' +
       (f.signature.meta ? '<p class="meta">' + esc(f.signature.meta) + '</p>' : '') + '<div>' + buy + '</div></div></div>' +
+      strip(f.name, ['招牌茶'], 'need') +
+      strip(f.name, ['其他'], 'more') +
       '<dl class="info">' + f.info.map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' +
       '<div class="pager"><a class="ul" href="' + link(pv) + '">← ' + esc(F[pv].name) + '</a><a class="ul" href="' + link(nx) + '">' + esc(F[nx].name) + ' →</a></div>' +
       '</div>';
   }
+
 
   /* ---------- routing: #factory-N opens a factory, anything else is home ---------- */
   function route() {

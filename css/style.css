@@ -168,3 +168,16 @@ button { font-family: inherit; color: inherit; }
 .tea-info dt { color: #737373; } .tea-info dd { margin: 0; }
 .tea-links { margin: 20px 0 0; display: flex; flex-wrap: wrap; gap: 24px; font-size: 15px; }
 @media (max-width: 760px) { .tea.has-photo { grid-template-columns: minmax(0, 1fr); } }
+
+/* photos from images/茶廠照片 (fall back to placeholder) */
+.img img.fill { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
+.slide img { position: relative; z-index: 1; }
+
+/* photo strips on the factory page: 類別.jpg, 類別1.jpg … */
+.strip { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 8px; margin-top: 16px; -webkit-overflow-scrolling: touch; }
+.strip img { height: clamp(240px, 38vw, 460px); width: auto; flex: none; border-radius: 16px; scroll-snap-align: start; display: block; }
+.strip .ph { display: none; }
+.strip.empty.need { height: clamp(240px, 38vw, 460px); border-radius: 16px; background: #EEEFEA; position: relative; }
+.strip.empty.need .ph { display: block; position: absolute; top: 16px; left: 20px; margin: 0; font-size: 12px; letter-spacing: .15em; color: #525252; }
+.strip.empty.more { display: none; }
+.sig { padding-bottom: 8px; }
