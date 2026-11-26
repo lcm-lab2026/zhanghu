@@ -181,3 +181,16 @@ button { font-family: inherit; color: inherit; }
 .strip.empty.need .ph { display: block; position: absolute; top: 16px; left: 20px; margin: 0; font-size: 12px; letter-spacing: .15em; color: #525252; }
 .strip.empty.more { display: none; }
 .sig { padding-bottom: 8px; }
+
+/* 商品格子（網拍式）*/
+.shop { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 48px 32px; margin-top: 32px; padding-bottom: 48px; }
+.prod { display: flex; flex-direction: column; align-items: center; text-align: center; color: inherit; text-decoration: none; }
+.prod[href] { cursor: pointer; }
+.pimg { position: relative; width: 100%; aspect-ratio: 1 / 1; background: #EEEFEA; overflow: hidden; }
+.pimg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
+.prod[href]:hover .pimg img { transform: scale(1.03); }
+.pimg .ph { position: absolute; top: 12px; left: 14px; margin: 0; font-size: 12px; letter-spacing: .15em; color: #525252; }
+.pname { margin: 16px 0 0; font-size: 17px; line-height: 1.55; }
+.pprice { margin: 8px 0 0; font-size: 18px; font-weight: 600; color: #9AA9B8; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.pprice s { font-size: 15px; font-weight: 400; color: #737373; }
+@media (max-width: 900px) { .shop { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px 16px; } .pname { font-size: 15px; } .pprice { font-size: 16px; } }

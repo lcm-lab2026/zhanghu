@@ -152,6 +152,18 @@
     return '<div class="img ' + cls + '"><p class="ph">' + (label || '照片拍攝中') + '</p>' +
       (file ? '<img class="fill" src="' + file + '" alt="" onerror="this.remove()">' : '') + '</div>';
   };
+  // 商品格子：照片＋品名＋價格，點了到茶廠自己的購買頁
+  function shop(f) {
+    var list = f.products && f.products.length ? f.products : [{ photo: '招牌茶1', name: '', price: '' }];
+    var href = f.buy.url ? ' href="' + esc(f.buy.url) + '" target="_blank" rel="noopener"' : '';
+    return '<div class="shop">' + list.map(function (it) {
+      return '<a class="prod"' + href + '><div class="pimg"><p class="ph">照片拍攝中</p>' +
+        '<img src="' + photo(f.name, it.photo) + '" alt="' + esc(it.name || f.name) + '" loading="lazy" onerror="this.remove()"></div>' +
+        '<p class="pname">' + esc(it.name || '') + '</p>' +
+        '<p class="pprice">' + esc(it.price || '') + (it.was ? '<s>' + esc(it.was) + '</s>' : '') + '</p></a>';
+    }).join('') + '</div>';
+  }
+
   function detail(i) {
     var f = F[i], n = F.length, pv = (i + n - 1) % n, nx = (i + 1) % n;
     var buy = f.buy.url ? '<a class="pill pill-show" href="' + esc(f.buy.url) + '" target="_blank" rel="noopener">' + esc(f.buy.label) + '</a>'
@@ -163,7 +175,7 @@
       strip(f.name, ['人物', '製茶'], 'need') +
       '<div class="sig"><div class="txt"><p class="lbl">招牌茶</p><h3>' + esc(f.signature.title) + '</h3><p class="desc">' + esc(f.signature.desc) + '</p>' +
       (f.signature.meta ? '<p class="meta">' + esc(f.signature.meta) + '</p>' : '') + '<div>' + buy + '</div></div></div>' +
-      strip(f.name, ['招牌茶'], 'need') +
+      shop(f) +
       strip(f.name, ['其他'], 'more') +
       '<dl class="info">' + f.info.map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' +
       '<div class="pager"><a class="ul" href="' + link(pv) + '">← ' + esc(F[pv].name) + '</a><a class="ul" href="' + link(nx) + '">' + esc(F[nx].name) + ' →</a></div>' +
